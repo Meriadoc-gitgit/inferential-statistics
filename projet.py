@@ -33,25 +33,33 @@ def getPrior(df) :
 #####
 # QUESTION 1.2 - POO DANS LA HIERACHIE DES `CLASSIFIER`
 #####
-class AprioriClassifier(AbstractClassifier) : 
+class APrioriClassifier(AbstractClassifier) : 
+  
+  def __init__(self) : 
+    pass
+
+  def estimClass(self, attrs) : 
+    if attrs is None : 
+      return
+    estimation = getPrior(attrs)
+    return estimation["min5pourcent"]<=estimation["estimation"]<=estimation["max5pourcent"]
+
+
+
+
+class ML2DClassifier(APrioriClassifier) : 
   pass
 
-
-
-
-class ML2DClassifier(AprioriClassifier) : 
+class MAP2DClassifier(APrioriClassifier) : 
   pass
 
-class MAP2DClassifier(AprioriClassifier) : 
+class MLNaiveBayesClassifier(APrioriClassifier) : 
   pass
 
-class MLNaiveBayesClassifier(AprioriClassifier) : 
+class MAPNaiveBayesClassifier(APrioriClassifier) : 
   pass
 
-class MAPNaiveBayesClassifier(AprioriClassifier) : 
-  pass
-
-class MAPTANlassifier(AprioriClassifier) : 
+class MAPTANlassifier(APrioriClassifier) : 
   pass
 
 
