@@ -38,7 +38,7 @@ class APrioriClassifier(AbstractClassifier) :
   def __init__(self) : 
     pass
 
-  def estimClass(self, attrs) : 
+  def estimClass(self, dic) : 
     """
     Prédire si le patient semble malade ou non en retournant soit 1 soit 0
     
@@ -46,10 +46,10 @@ class APrioriClassifier(AbstractClassifier) :
     ---------
       attrs : pandas.dataframe
     """
-    if attrs is None : # Le cas où le dataframe prend en entrée est NULL alors on retourne vide
+    if dic is None : # Le cas où le dataframe prend en entrée est NULL alors on retourne vide
       return
-    estimation = getPrior(attrs) # Estimer si le patient est malade en utilisant l'estimation et son intervalle de confiance
-    return 1 if estimation["min5pourcent"]<=estimation["estimation"]<=estimation["max5pourcent"] else 0
+    estimation = getPrior(dic)["estimation"] # Estimer si le patient est malade en utilisant l'estimation et son intervalle de confiance
+    return 0 if estimation<0.5 else 1
 
   def statsOnDF(self, df) : 
     """
@@ -60,7 +60,9 @@ class APrioriClassifier(AbstractClassifier) :
       attrs : pandas.dataframe
     """
     estimation = self.estimClass(df)
-    VP = len([i for i in df["target"] if i==1 and i==estimation]) # vrai posotif
+    print(estimation)
+    #print(estimation)
+    VP = len([i for i in df["target"] if i==1 and i==estimation]) # vrai positif
     VN = len([i for i in df["target"] if i==0 and i==estimation]) # vrai négatif
     FP = len([i for i in df["target"] if i==0 and i!=estimation]) # faux positif
     FN = len([i for i in df["target"] if i==1 and i!=estimation]) # faux négatif
@@ -79,11 +81,12 @@ class APrioriClassifier(AbstractClassifier) :
 #####
 def P2D_l(df, attr) : 
   """
-  Renvoyer les 4 valeurs : vrai positif, vrai négatif, faux positif, faux négatif, ainsi que la précision et le rappel
+  Calculer dans le dataframe la probabilité P(attr\ target) sous la forme d'un dictioinnaire asociant à la valeur t un dictionnaire associant à la valeur a la probabilité P(attr=a\ target=t)
     
   Paramètres
   ---------
-    attrs : pandas.dataframe
+    df : dataframe
+    attrs : string
   """
   liste_val_unique_attr = np.unique(df[attr])
   df_target_1 = df[df["target"]==1][[attr, "target"]]
@@ -97,6 +100,27 @@ def P2D_l(df, attr) :
 
   return {1 : p_attr_1, 0 : p_attr_0}
 
+def P2D_p(df, attr) : 
+  """
+  Calculer dans le dataframe la probabilité P(target\ attr) sous la forme d'un dictionnaire associant à la valeur a un dictionnaire associant à la valeur t la probabilité P(target=t \ attr=a)
+    
+  Paramètres
+  ---------
+    df : dataframe
+    attrs : string
+  """
+  liste_val_unique_attr = np.unique(df[attr])
+  res = dict()
+
+  for i in liste_val_unique_attr : 
+    D = dict()
+    data = df[df[attr]==i][[attr,"target"]]
+    p_attr_1 = len([i for i in data["target"] if i==1]) / len(data)
+    p_attr_0 = len([i for i in data["target"] if i==0]) / len(data)
+    D[1] = p_attr_1
+    D[0] = p_attr_0
+    res[i] = D
+  return res
 
 
 
@@ -104,7 +128,26 @@ def P2D_l(df, attr) :
 
 
 class ML2DClassifier(APrioriClassifier) : 
-  pass
+  def __init__(self, df, attr) : 
+    self.attr = attr
+    self.p2dl = P2D_l(df, attr)
+    print(self.p2dl)
+
+  def estimClass(self, dic) : 
+    l = dic[self.attr]
+    print(l)
+    print(self.p2dl[0][l])
+    print(self.p2dl[1][l])
+    if self.p2dl[0][l] < self.p2dl[1][l] : return 1
+    return 0
+    
+  
+
+
+
+
+
+
 
 class MAP2DClassifier(APrioriClassifier) : 
   pass
