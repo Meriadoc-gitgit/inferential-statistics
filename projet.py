@@ -8,6 +8,7 @@
 # Import necessary libraries
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # Import utils
 import utils
@@ -18,7 +19,7 @@ test=pd.read_csv("data/test.csv")
 
 
 #####
-# CLASSIFICATION A PRIORI
+# 1 - CLASSIFICATION A PRIORI
 #####
 # QUESTION 1.1 - CALCUL DE PROBA A PRIORI
 #####
@@ -86,7 +87,7 @@ class APrioriClassifier(AbstractClassifier) :
 
 
 #####
-# CLASSIFICATION PROBABILISTE À 2 DIMENSIONS
+# 2 - CLASSIFICATION PROBABILISTE À 2 DIMENSIONS
 #####
 # QUESTION 2.1 - PROBABILITÉS CONDITIONNELLES
 #####
@@ -175,7 +176,7 @@ class MAP2DClassifier(APrioriClassifier) :
 
 
 #####
-# COMPLEXITÉS
+# 3 - COMPLEXITÉS
 #####
 # FONCTION POUR L'AFFICHAGE
 #####
@@ -222,7 +223,7 @@ def nbParams(df, attr=list(train.columns)) :
   if octets!=0 or (octets==0 and (kb!=0 or mb!=0 or gb!=0)) : 
     string+=str(octets)+"o"
   print(string)
-  return comp*8
+  #return comp*8
 
 
 
@@ -249,7 +250,99 @@ def nbParamsIndep(df) :
   if octets!=0 or (octets==0 and (kb!=0 or mb!=0 or gb!=0)) : 
     string+=str(octets)+"o"
   print(string)
-  return comp
+  #return comp
+
+
+
+#####
+# QUESTION 3.3 - INDÉPENDANCE PARTIELLE
+#####
+# 3.3.a. PREUVE
+#####
+# Pour prouver l'indépendance conditionnelle de A par rapport à C sachant B, on montre que :
+# P(A | B, C) = P(A | B)
+# Cela signifie que l'information sur C n'a pas d'impact sur A une fois que l'on connaît B. 
+
+
+
+
+#####
+# 3.3.b. COMPLEXITÉ EN INDÉPENDANCE PARTIELLE
+#####
+# Si les 3 variables A, et C ont 5 valeurs, 
+# - Pour savoir la taille mémoire en octet nécessaire pour représenter cette distribution sans l'indépendance conditionnelle, on applique la fonction nbParams qui renvoie 5^3*8 octet au total.
+# - Pour savoir la taille mémoire en octet nécessaire pour représenter cette distribution avec l'indépendance conditionnelle, on applique la fonction nbParamsIndep qui renvoie len(np.unique([(i,j,k) avec i dans A, j dans B, k dans C]))*8 octet au total, qui devra être inférieur ou égale à celle sans l'indépendance conditionnelle.
+
+
+
+
+
+
+#####
+# 4 - MODÈLES GRAPHIQUES
+#####
+# QUESTION 4.1 - EXEMPLES
+#####
+#Supposons 5 variables A, B, C, D, E. 
+#Dans une représentation graphique de la relation entre ces 5 variables, s'ils sont complètement indépandantes conditionnellement, il n'existe aucun circuit. En revanche, aucun indépendance est observé, il existe un circuit passant par ces 5 variables. 
+#À noter que plusieurs représentations graphiques sont possibles pour ces 2 cas principals. Pour les graphes de version plus simple, l'indépendance des 5 variables peut être représentés par une arborescence d'une ligne droite passant de A à E. Or, pour la représentation la plus simple d'un circuit, il suffit d'ajouter un arc arrière de E à A, dont un graphe orienté ayant un arc arrière contient un circuit. 
+#utils.drawGraphHorizontal("A->B;B->C;C->D;D->E")
+#utils.drawGraphHorizontal("A->B;B->C;C->D;D->E;E->A")
+
+
+
+
+
+#####
+# QUESTION 4.3 - MODÈLE GRAPHIQUE ET NAIVE BAYES
+#####
+# 4.3.a
+#####
+def drawNaiveBayes(df, attr) : 
+  heading_attr = list(train.columns)
+  string = ""
+  for i in range(len(heading_attr)) : 
+    if heading_attr[i]!=attr : 
+      if i==0 : 
+        string += attr + "->" + str(heading_attr[i])
+      else : string += ";" + attr + "->" + str(heading_attr[i])
+  return utils.drawGraph(string)
+
+
+
+
+#####
+# 4.3.b
+#####
+def nbParamsNaiveBayes(df, attr, headings=list(train.columns)) : 
+  if len(headings)==0 : 
+    comp = 2
+  else : 
+    comp = -1
+
+    for i in headings : 
+      data = df.loc[:, [attr,i]]
+      comp+=len(np.unique(data[i]))
+
+    comp*=2
+
+  gb, mb, kb, octets = convert_octets_to_gbmokb(comp*8)
+
+  string = str(len(headings)) + " variable(s) : "+str(comp*8)+" octets"
+
+  # Affichage des octets
+  if gb !=0 or mb!=0 or kb!=0: 
+    string += " = "
+  if gb!=0 : 
+    string+=str(gb)+"go "
+  if mb!=0 : 
+    string+=str(mb)+"mo "
+  if kb!=0 : 
+    string+=str(kb)+"ko "
+  if octets!=0 or (octets==0 and (kb!=0 or mb!=0 or gb!=0)) : 
+    string+=str(octets)+"o"
+  print(string)
+
 
 
 
