@@ -1,8 +1,8 @@
 #####
 # INFORMATION DE BINOMES
 #####
-# Hoang Thuy Duong VU
-# HalimatoudDIALLO
+# Hoang Thuy Duong VU | 21110221
+# Halimatou DIALLO | 21114613
 ####
 
 # Import necessary libraries
@@ -12,8 +12,9 @@ import matplotlib.pyplot as plt
 
 # Import utils
 import utils
-from utils import *
+from utils import * # Import les classes dans utils pour l'héritage de classes présentes dans ce fichier
 
+# Importation de base de données afin de faciliter l'implémentation des noms de colonnes uniques sans devoir tout réécrire
 train=pd.read_csv("data/train.csv")
 test=pd.read_csv("data/test.csv")
 
@@ -44,7 +45,7 @@ class APrioriClassifier(AbstractClassifier) :
   def __init__(self) : 
     pass
 
-  def estimClass(self, dic) : 
+  def estimClass(self, dic=None) : 
     """
     Prédire si le patient semble malade ou non en retournant soit 1 soit 0
     
@@ -52,13 +53,12 @@ class APrioriClassifier(AbstractClassifier) :
     ---------
       attrs : pandas.dataframe
     """
-    if dic is None : # Le cas où le dataframe prend en entrée est NULL alors on retourne vide
-      return
     #print("dic",dic)
     estimation = getPrior(dic)["estimation"] # Estimer si le patient est malade en utilisant l'estimation et son intervalle de confiance
-    return 0 if estimation<0.5 else 1
+    #return 0 if estimation<0.5 else 1
+    return 1
 
-  def statsOnDF(self, df) : 
+  def statsOnDF(self, df=None) : 
     """
     Renvoyer les 4 valeurs : vrai positif, vrai négatif, faux positif, faux négatif, ainsi que la précision et le rappel
     
@@ -170,6 +170,17 @@ class MAP2DClassifier(APrioriClassifier) :
 #####
 # QUESTION 2.4 - COMPARAISON
 #####
+# Voici notre réponsi ci-desssous :
+"""
+REDO !!!
+À partir des résultats des tests de fonctions ci-dessus, on a obtenu : 
+- APrioriClassifier avec le taux de précision et de rappel qui varie entre [0.7,0.9] et le nombre d'erreur supérieur à 10
+- ML2DClassifier avec le taux de précision et de rappel qui varie entre [0.7,0.9] et le nombre d'erreur supérieur à 10
+- MAP2DClassifier avec le taux de précision et de rappel qui varie entre [0.8,0.9]
+et le nombre d'erreur supérieur à 15
+
+On trouve bien que APrioriClassifier semble être le meilleur choix, car il a la meilleure précision en comparant avec les 2 autres méthodes de classification. Plus le nombre d'erreur augmente, plus le taux de précision diminue, et à partir de cette relation on peut déterminer le meilleur classificateur à choisir. 
+"""
 
 
 
@@ -223,7 +234,7 @@ def nbParams(df, attr=list(train.columns)) :
   if octets!=0 or (octets==0 and (kb!=0 or mb!=0 or gb!=0)) : 
     string+=str(octets)+"o"
   print(string)
-  #return comp*8
+  return comp*8
 
 
 
@@ -232,7 +243,7 @@ def nbParams(df, attr=list(train.columns)) :
 #####
 def nbParamsIndep(df) : 
   attr = list(df.columns)
-  comp = np.sum([len(np.unique(df[i])) for i in attr])*8
+  comp = np.sum([len(np.unique(df[i])) for i in attr])
 
   gb, mb, kb, octets = convert_octets_to_gbmokb(comp*8)
 
@@ -250,7 +261,7 @@ def nbParamsIndep(df) :
   if octets!=0 or (octets==0 and (kb!=0 or mb!=0 or gb!=0)) : 
     string+=str(octets)+"o"
   print(string)
-  #return comp
+  return comp*8
 
 
 
@@ -259,20 +270,24 @@ def nbParamsIndep(df) :
 #####
 # 3.3.a. PREUVE
 #####
-# Pour prouver l'indépendance conditionnelle de A par rapport à C sachant B, on montre que :
-# P(A | B, C) = P(A | B)
-# Cela signifie que l'information sur C n'a pas d'impact sur A une fois que l'on connaît B. 
-
+# Voici notre réponsi ci-desssous :
+"""
+Pour prouver l'indépendance conditionnelle de A par rapport à C sachant B, on montre que :
+  P(A | B, C) = P(A | B)
+Cela signifie que l'information sur C n'a pas d'impact sur A une fois que l'on connaît B. 
+"""
 
 
 
 #####
 # 3.3.b. COMPLEXITÉ EN INDÉPENDANCE PARTIELLE
 #####
-# Si les 3 variables A, et C ont 5 valeurs, 
-# - Pour savoir la taille mémoire en octet nécessaire pour représenter cette distribution sans l'indépendance conditionnelle, on applique la fonction nbParams qui renvoie 5^3*8 octet au total.
-# - Pour savoir la taille mémoire en octet nécessaire pour représenter cette distribution avec l'indépendance conditionnelle, on applique la fonction nbParamsIndep qui renvoie len(np.unique([(i,j,k) avec i dans A, j dans B, k dans C]))*8 octet au total, qui devra être inférieur ou égale à celle sans l'indépendance conditionnelle.
-
+# Voici notre réponsi ci-desssous :
+"""
+Si les 3 variables A, et C ont 5 valeurs, 
+- Pour savoir la taille mémoire en octet nécessaire pour représenter cette distribution sans l'indépendance conditionnelle, on applique la fonction nbParams qui renvoie 5^3*8 octet au total.
+- Pour savoir la taille mémoire en octet nécessaire pour représenter cette distribution avec l'indépendance conditionnelle, on applique la fonction nbParamsIndep qui renvoie len(np.unique([(i,j,k) avec i dans A, j dans B, k dans C]))*8 octet au total, qui devra être inférieur ou égale à celle sans l'indépendance conditionnelle.
+"""
 
 
 
@@ -283,13 +298,16 @@ def nbParamsIndep(df) :
 #####
 # QUESTION 4.1 - EXEMPLES
 #####
-#Supposons 5 variables A, B, C, D, E. 
-#Dans une représentation graphique de la relation entre ces 5 variables, s'ils sont complètement indépandantes conditionnellement, il n'existe aucun circuit. En revanche, aucun indépendance est observé, il existe un circuit passant par ces 5 variables. 
-#À noter que plusieurs représentations graphiques sont possibles pour ces 2 cas principals. Pour les graphes de version plus simple, l'indépendance des 5 variables peut être représentés par une arborescence d'une ligne droite passant de A à E. Or, pour la représentation la plus simple d'un circuit, il suffit d'ajouter un arc arrière de E à A, dont un graphe orienté ayant un arc arrière contient un circuit. 
-#utils.drawGraphHorizontal("A->B;B->C;C->D;D->E")
-#utils.drawGraphHorizontal("A->B;B->C;C->D;D->E;E->A")
+# Voici notre réponsi ci-desssous :
+"""
+Supposons 5 variables A, B, C, D, E. 
+Dans une représentation graphique de la relation entre ces 5 variables, s'ils sont complètement indépandantes conditionnellement, il n'existe aucun circuit. En revanche, aucun indépendance est observé, il existe un circuit passant par ces 5 variables. 
+À noter que plusieurs représentations graphiques sont possibles pour ces 2 cas principals. Pour les graphes de version plus simple, l'indépendance des 5 variables peut être représentés par une arborescence d'une ligne droite passant de A à E. Or, pour la représentation la plus simple d'un circuit, il suffit d'ajouter un arc arrière de E à A, dont un graphe orienté ayant un arc arrière contient un circuit. 
 
-
+Fonctions d'affichage de graphe d'indépendance :
+utils.drawGraphHorizontal("A->B;B->C;C->D;D->E")
+utils.drawGraphHorizontal("A->B;B->C;C->D;D->E;E->A")
+"""
 
 
 
@@ -299,7 +317,7 @@ def nbParamsIndep(df) :
 # 4.3.a
 #####
 def drawNaiveBayes(df, attr) : 
-  heading_attr = list(train.columns)
+  heading_attr = list(df.columns)
   string = ""
   for i in range(len(heading_attr)) : 
     if heading_attr[i]!=attr : 
@@ -342,25 +360,159 @@ def nbParamsNaiveBayes(df, attr, headings=list(train.columns)) :
   if octets!=0 or (octets==0 and (kb!=0 or mb!=0 or gb!=0)) : 
     string+=str(octets)+"o"
   print(string)
+  return comp*8
 
 
 
-
-
+#####
+# QUESTION 4.4 - CLASSIFIER NAIVE BAYES
+#####
 class MLNaiveBayesClassifier(APrioriClassifier) : 
-  pass
+  def __init__(self, df) : 
+    list_attr = list(df.columns)
+    pd2l = dict()
+    for attr in list_attr : 
+      if attr!="target" :
+        pd2l[attr] = P2D_l(df, attr) 
+    self.p2dl = pd2l
+    self.df = df
+
+  def estimProbas(self, data) : 
+    """Calcule la vraisemblance"""
+    prob_0 = 1; prob_1 = 1
+    for (k,v) in data.items() :
+      if k in list(self.df.columns) and k!="target": 
+        if v in self.p2dl[k][0] or v in self.p2dl[k][1]: 
+          prob_0*=self.p2dl[k][0][v]
+          prob_1*=self.p2dl[k][1][v]
+        else : 
+          prob_0*=0
+          prob_1*=0
+    return {0 : prob_0, 1 : prob_1}
+
+  def estimClass(self, data) : 
+    prob = self.estimProbas(data)
+    return 1 if prob[1]>prob[0] else 0
+
 
 class MAPNaiveBayesClassifier(APrioriClassifier) : 
-  pass
+  def __init__(self, df) : 
+    list_attr = list(df.columns)
+    pd2l = dict()
+    for attr in list_attr : 
+      if attr!="target" :
+        pd2l[attr] = P2D_l(df, attr) 
+    self.p2dl = pd2l
+    self.df = df
+    self.p = np.sum(df["target"]) / len(df)
 
-class MAPTANlassifier(APrioriClassifier) : 
-  pass
+  def estimProbas(self, data) : 
+    """Calcule la vraisemblance"""
+    prob_0, prob_1 = 1-self.p, self.p
+    for (k,v) in data.items() : 
+      if k in list(self.df.columns) and k!="target":
+        prob_0*=self.p2dl[k][0][v] if v in self.p2dl[k][0] else 0
+        prob_1*=self.p2dl[k][1][v] if v in self.p2dl[k][1] else 0
+
+    pa = prob_0 + prob_1
+    if pa!=0 : 
+      prob_0/=pa; prob_1/=pa
+    return {0 : prob_0, 1 : prob_1}
+
+  def estimClass(self, data) : 
+    prob = self.estimProbas(data)
+    return 1 if prob[1]>prob[0] else 0
+    
 
 
+
+
+
+
+
+#####
+# 5 - FEATURE SELECTION DANS LE CADRE DU CLASSIFIER NAIVE BAYES
+# (Cours8 - page 11->15)
+#####
+# QUESTION 5.1 
+#####
+# Importer scipy.stats.chi2_contigency
+from scipy.stats import chi2_contingency
+
+def isIndepFromTarget(df, attr, x) :
+  """vérifie si `attr` est indépendant de `target` au seuil de x%."""
+  data = pd.crosstab(df[attr], df['target'])
+  _, p, _, _ = chi2_contingency(data)
+  return 1 if p>x else 0
+  
 
 
 class ReducedMLNaiveBayesClassifier(MLNaiveBayesClassifier) : 
-  pass
+  def __init__(self, df, x) : 
+    liste_attr = list(df.columns)
+    liste_attr_indep = [attr for attr in liste_attr if not isIndepFromTarget(df, attr, x)]
+    data = df.loc[:, liste_attr_indep]
+    self.df = data
+    super(ReducedMLNaiveBayesClassifier, self).__init__(data)
+    self.x = x
 
-class ReducedMAPNaiveBayesClassifier(MLNaiveBayesClassifier) : 
+  def draw(self) : 
+    return drawNaiveBayes(self.df, "target")
+
+class ReducedMAPNaiveBayesClassifier(MAPNaiveBayesClassifier) : 
+  def __init__(self, df, x) : 
+    liste_attr = list(df.columns)
+    liste_attr_indep = [attr for attr in liste_attr if not isIndepFromTarget(df, attr, x)]
+    data = df.loc[:, liste_attr_indep]
+    self.df = data
+    super(ReducedMAPNaiveBayesClassifier, self).__init__(data)
+    self.x = x
+
+  def draw(self) : 
+    return drawNaiveBayes(self.df, "target")
+
+
+
+
+
+
+#####
+# 6 - EVALUATION DES CLASSIFIEURS
+#####
+# QUESTION 6.1 
+#####
+# Voici notre réponsi ci-desssous :
+"""
+insert response
+"""
+
+
+
+#####
+# Import les libraries graphiques necessaires
+#####
+import matplotlib as mpl
+import seaborn as sns
+sns.set(context="notebook", style="whitegrid", palette="hls", font="sans-serif", font_scale=1.4) 
+
+mpl.rcParams['figure.figsize'] = (20, 10)
+
+
+#####
+# QUESTION 6.2
+#####
+def mapClassifiers(dic, df) : 
+  plt.figure(figsize=(10,5))
+  for (k,v) in dic.items() : 
+    cl = v
+    stat = cl.statsOnDF(df)
+    precision = stat["Précision"]
+    rappel = stat["Rappel"]
+    plt.scatter(precision, rappel, label=k, marker='x')
+    plt.annotate(k, (precision+.001, rappel), fontsize=12, ha='left', va='center')
+
+
+
+
+class MAPTANClassifier(APrioriClassifier) : 
   pass
