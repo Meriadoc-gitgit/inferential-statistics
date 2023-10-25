@@ -495,21 +495,20 @@ import matplotlib as mpl
 import seaborn as sns
 sns.set(context="notebook", style="whitegrid", palette="hls", font="sans-serif", font_scale=1.4) 
 
-mpl.rcParams['figure.figsize'] = (20, 10)
+mpl.rcParams['figure.figsize'] = (10, 8)
 
 
 #####
 # QUESTION 6.2
 #####
 def mapClassifiers(dic, df) : 
-  plt.figure(figsize=(10,5))
   for (k,v) in dic.items() : 
     cl = v
     stat = cl.statsOnDF(df)
     precision = stat["Précision"]
     rappel = stat["Rappel"]
     plt.scatter(precision, rappel, label=k, marker='x')
-    plt.annotate(k, (precision+.001, rappel), fontsize=12, ha='left', va='center')
+    plt.annotate(k, (precision+.001, rappel), fontsize=15, ha='left', va='center')
 
 
 
