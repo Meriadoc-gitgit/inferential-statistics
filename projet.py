@@ -54,7 +54,7 @@ class APrioriClassifier(AbstractClassifier) :
       attrs : pandas.dataframe
     """
     #print("dic",dic)
-    estimation = getPrior(dic)["estimation"] # Estimer si le patient est malade en utilisant l'estimation et son intervalle de confiance
+    #estimation = getPrior(dic)["estimation"] # Estimer si le patient est malade en utilisant l'estimation et son intervalle de confiance
     #return 0 if estimation<0.5 else 1
     return 1
 
@@ -495,7 +495,7 @@ import matplotlib as mpl
 import seaborn as sns
 sns.set(context="notebook", style="whitegrid", palette="hls", font="sans-serif", font_scale=1.4) 
 
-mpl.rcParams['figure.figsize'] = (10, 8)
+mpl.rcParams['figure.figsize'] = (12, 10)
 
 
 #####
@@ -509,6 +509,81 @@ def mapClassifiers(dic, df) :
     rappel = stat["Rappel"]
     plt.scatter(precision, rappel, label=k, marker='x')
     plt.annotate(k, (precision+.001, rappel), fontsize=15, ha='left', va='center')
+
+
+
+
+
+
+#####
+# 7 - SOPHISTICATION DU MODÈLE (BONUS)
+#####
+# QUESTION 7.1 - CALCUL DES INFORMATION MUTUELLES
+#####
+def MutualInformation(df, x, y) : 
+  joint_counts = df.groupby([y, x]).size().reset_index(name="count")
+  joint_counts["P(y, x)"] = joint_counts["count"] / len(df)
+  p_y = []; p_x = []
+  for i in range(len(joint_counts)) : 
+    p_y.append(len([j for j in df[y] if j==joint_counts[y][i]])/len(df))
+    p_x.append(len([j for j in df[x] if j==joint_counts[x][i]])/len(df))
+  joint_counts["P(y)"] = p_y
+  joint_counts["P(x)"] = p_x
+
+  return np.sum([joint_counts["P(y, x)"][i]*np.log2(joint_counts["P(y, x)"][i]/(joint_counts["P(y)"][i]*joint_counts["P(x)"][i])) for i in range(len(joint_counts))])
+  
+
+def ConditionalMutualInformation(df, x, y, z) : 
+  joint_counts = df.groupby([x,y,z]).size().reset_index(name="count")
+  joint_counts["P(x, y, z)"] = joint_counts["count"] / len(df)
+  p_z = []
+  p_x_z = []; p_y_z = []
+  for i in range(len(joint_counts)) : 
+    p_z.append(len([j for j in train[z] if j==joint_counts[z][i]])/len(train))
+
+  joint_counts["P(z)"] = p_z
+
+  joint_counts2 = train.groupby([x,z]).size().reset_index(name="count")
+  joint_counts2["P(x, z)"] = joint_counts2["count"] / len(train)
+  
+
+  p_x_z = []
+  for i in range(len(joint_counts)) : 
+    for j in range(len(joint_counts2)) : 
+      if joint_counts[x][i]==joint_counts2[x][j] and joint_counts[z][i]==joint_counts2[z][j] : 
+        p_x_z.append(joint_counts2["P(x, z)"][j])
+
+  joint_counts["P(x, z)"] = p_x_z
+
+  joint_counts3 = train.groupby([y,z]).size().reset_index(name="count")
+  joint_counts3["P(y, z)"] = joint_counts3["count"] / len(train)
+
+  p_y_z = []
+  for i in range(len(joint_counts)) : 
+    for j in range(len(joint_counts3)) : 
+      if joint_counts[y][i]==joint_counts3[y][j] and joint_counts[z][i]==joint_counts3[z][j] : 
+        p_y_z.append(joint_counts3["P(y, z)"][j])
+
+  joint_counts["P(y, z)"] = p_y_z
+
+  return np.sum([joint_counts["P(x, y, z)"][i]*np.log2((joint_counts["P(z)"][i]*joint_counts["P(x, y, z)"][i])/(joint_counts["P(x, z)"][i]*joint_counts["P(y, z)"][i])) for i in range(len(joint_counts))])
+
+
+
+
+#####
+# QUESTION 7.2 - CALCUL DE LA MATRICE DES POIDS
+#####
+def MeanForSymetricWeights(cmis) : 
+  if (len(cmis)!=len(cmis[0])) : print("Warning : The given matrix is not symetric"); return
+  return np.sum([np.sum(i) for i in cmis])/(len(cmis)*len(cmis[0])-len(cmis[0]))
+
+
+def SimplifyConditionalMutualInformationMatrix(cmis) : 
+  mean = MeanForSymetricWeights(cmis)
+  for i in range(len(cmis)) : 
+    for j in range(len(cmis[i])) : 
+      cmis[i][j] = 0 if cmis[i][j]<mean else cmis[i][j]
 
 
 
