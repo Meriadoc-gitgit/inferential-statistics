@@ -588,5 +588,129 @@ def SimplifyConditionalMutualInformationMatrix(cmis) :
 
 
 
+#####
+# QUESTION 7.3 - ARBRE (FORÊT) OPTIMAL ENTRE LES ATTRIBUTS
+#####
+def add(L, tup) : 
+  if len(L)==0 : 
+    L.append(tup)
+    return 
+  set_attr = set()
+  for i in L : 
+    set_attr.add(i[0]); set_attr.add(i[1])
+
+  if tup[0] not in set_attr or tup[1] not in set_attr : 
+    L.append(tup)
+
+  elif tup[0] in set_attr and tup[1] in set_attr : 
+    for i in L : 
+      if tup[0]==i[0] and tup[1]==i[1] and tup[2]>i[2] : 
+        L.replace(i, tup)
+  return 
+
+
+def Kruskal(df, a) : 
+  list_arcs = []
+  for i in range(len(a)) : 
+    if np.sum(a[i])>0 and np.max(a[i])>.25 :
+      add(list_arcs, (df.keys()[i], df.keys()[np.argmax(a[i])], np.max(a[i])))
+  return list_arcs
+
+
+
+#####
+# QUESTION 7.4 - ORIENTATION DES ARCS ENTRE ATTRIBUTS
+#####
+def ConnexSets(list_arcs) :
+  list_attr_connected = []
+  s = set()
+  for i in range(len(list_arcs)) : 
+    if list_arcs[i][0] not in s and list_arcs[i][1] in s :
+      s.add(list_arcs[i][0])
+    elif list_arcs[i][0] in s and list_arcs[i][1] not in s :
+      s.add(list_arcs[i][1])
+    elif list_arcs[i][0] not in s and list_arcs[i][1] not in s :
+      s = set()
+      s.add(list_arcs[i][0])
+      s.add(list_arcs[i][1])
+    
+    if s not in list_attr_connected : 
+      list_attr_connected.append(s)
+
+  return list(list_attr_connected)
+
+
+
+def chercheRacine(list_arcs) : 
+  l1 = [u for u,_ in list_arcs]
+  l2 = [v for _,v in list_arcs]
+  L = []
+
+  while len(l1)!=0 and len(l2)!=0 :
+    for arc in list_arcs : 
+      if arc[0] not in l2 and arc[0] in l1 : 
+        L.append(arc)
+        l2.remove(arc[1])
+        l1.remove(arc[0])
+  return L
+  
+
+def OrientConnexSets(df, arcs, classe) : 
+  d = dict()
+  list_attr = df.keys()
+  for attr in list_attr : 
+    if attr!="target" : d[attr] = MutualInformation(df,"target",attr)
+  
+  list_attr = []
+  for arc in arcs : 
+    mi1 = d[arc[0]]; mi2 = d[arc[1]]
+    if arc[2] > .5 : 
+      if mi1>mi2 : list_attr.append((arc[1], arc[0]))
+      else : list_attr.append((arc[0], arc[1]))
+    else : 
+      if mi1<mi2 : list_attr.append((arc[1], arc[0]))
+      else : list_attr.append((arc[0], arc[1]))
+
+  list_attr = chercheRacine(list_attr)
+  return list_attr
+
+
+
+
+#####
+# QUESTION 7.5 - CLASSIFIEUR TAN
+#####
 class MAPTANClassifier(APrioriClassifier) : 
-  pass
+  def __init__(self, df) : 
+    self.df = df
+    cmis = np.array([[0 if x==y else ConditionalMutualInformation(train,x,y,"target") 
+                for x in train.keys() if x!="target"]
+               for y in train.keys() if y!="target"])
+
+    SimplifyConditionalMutualInformationMatrix(cmis)
+    self.cmis = cmis
+    self.list_arcs = Kruskal(df,cmis)
+    self.OrientConnexSets = OrientConnexSets(df, self.list_arcs, "target")
+
+  def draw(self) : 
+    heading_attr = list(self.df.columns)
+    string = ""
+    for i in range(len(heading_attr)) : 
+      if heading_attr[i]!="target" : 
+        if i==0 : 
+          string += "target" + "->" + str(heading_attr[i])
+        else : string += ";" + "target" + "->" + str(heading_attr[i])
+
+    for i in self.OrientConnexSets : 
+      if i==0 : 
+          string += i[0] + "->" + i[0]
+      else : string += ";" + i[0] + "->" + i[1]
+
+    return utils.drawGraph(string)
+
+
+  def estimProbas(line) : 
+    pass
+
+  def estimClass(line) : 
+    pass
