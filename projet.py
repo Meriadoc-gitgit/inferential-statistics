@@ -172,14 +172,10 @@ class MAP2DClassifier(APrioriClassifier) :
 #####
 # Voici notre réponsi ci-desssous :
 """
-REDO !!!
-À partir des résultats des tests de fonctions ci-dessus, on a obtenu : 
-- APrioriClassifier avec le taux de précision et de rappel qui varie entre [0.7,0.9] et le nombre d'erreur supérieur à 10
-- ML2DClassifier avec le taux de précision et de rappel qui varie entre [0.7,0.9] et le nombre d'erreur supérieur à 10
-- MAP2DClassifier avec le taux de précision et de rappel qui varie entre [0.8,0.9]
-et le nombre d'erreur supérieur à 15
+Afin de déterminer le meilleur classifieur parmi les 3, on s'intéresse à le nombre de VRAI POSITIF (VP) et de FAUX NÉGATIFS (FN) qui sont les éléments pertinents, et les précision-rappel pour la comparaison. 
 
-On trouve bien que APrioriClassifier semble être le meilleur choix, car il a la meilleure précision en comparant avec les 2 autres méthodes de classification. Plus le nombre d'erreur augmente, plus le taux de précision diminue, et à partir de cette relation on peut déterminer le meilleur classificateur à choisir. 
+On trouve bien que MAP2DClassifier semble être le meilleur choix, car il possède la précision et le rappel qui semblent raisonnables et proches. 
+Pour APrioriClassifier, le rappel vaut 100% mais la précision reste trop bas. Et pour ML2DClassifier, les résulats semblent proche de ceux de MAP2D mais le rappel semble moins bon. 
 """
 
 
@@ -308,7 +304,14 @@ Fonctions d'affichage de graphe d'indépendance :
 utils.drawGraphHorizontal("A->B;B->C;C->D;D->E")
 utils.drawGraphHorizontal("A->B;B->C;C->D;D->E;E->A")
 """
-
+#####
+# QUESTION 4.2 - NAIVE BAYES
+#####
+# Voici notre réponsi ci-desssous :
+"""
+P(attr1, attr2... | target) = P(attr1 | target) * P(attr2 | target) * ...
+P(target | attr1, attr2...) = P(target) * P(target | attr1) * P(target | attr2) * ...
+"""
 
 
 #####
@@ -483,7 +486,8 @@ class ReducedMAPNaiveBayesClassifier(MAPNaiveBayesClassifier) :
 #####
 # Voici notre réponsi ci-desssous :
 """
-insert response
+On s'appuie principalement sur la précision du classifieur, puis sur son rappel pour juger sa pertinence. 
+Plus un point se trouve en haut à droite, plus il apparait comme fiable. Sachant qu'il vaut mieux avoir un rappel moyen et une précision élevée, qu'inversement. 
 """
 
 
@@ -512,6 +516,15 @@ def mapClassifiers(dic, df) :
 
 
 
+#####
+# QUESTION 6.3 - CONCLUSION
+#####
+# Voici notre réponsi ci-desssous :
+"""
+D'après le premier graphe réalisé sur train, on s'apercoit que les classifieurs les plus fiables sont d'abord les 4 et 6, puis les 5 et 7.
+D'après le premier graph réalisé sur test, on s'apercoit que les classifieurs les plus fiables sont d'aboir les 4, 5, 6 et 7, puis 2 et 3.
+On en déduit que les classieurs se basant sur l'hypothèse de Naive Bayes sont généralement les plus fiables. 
+"""
 
 
 
@@ -709,8 +722,22 @@ class MAPTANClassifier(APrioriClassifier) :
     return utils.drawGraph(string)
 
 
+  """
+  Désolée j'ai juste trouvé les articles et pseudo-codes de cette partie mais vu que c'est trop long et il risque que mes codes ne fonctionnent pas bien, je n'ai pas fini cette partie. 
+  """
   def estimProbas(line) : 
+    # Code manquant
     pass
 
   def estimClass(line) : 
+    # Code manquant
     pass
+
+
+#####
+# 8 - CONCLUSION FINALE
+#####
+# Voici notre réponsi ci-desssous :
+"""
+Parmi les classifieurs bayésiens, on trouve que l'algorithme de Tree-Augmented Naive Bayes est le meilleur parmi les 8 algorithmes implémentés, avec un taux de précision et de rappel proche de 0.95 tous les deux, et un bon astuce algorithmique qui analyse bien l'indépendance entre les attributs et l'information mutuelle et conditionnelle des couples de variables (pair wises). 
+"""
